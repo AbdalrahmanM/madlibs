@@ -1,49 +1,83 @@
-/**
- * Complete the implementation of parseStory.
- *
- * parseStory retrieves the story as a single string from story.txt
- * (I have written this part for you).
- *
- * In your code, you are required (please read this carefully):
- * - to return a list of objects
- * - each object should definitely have a field, `word`
- * - each object should maybe have a field, `pos` (part of speech)
- *
- * So for example, the return value of this for the example story.txt
- * will be an object that looks like so (note the comma! periods should
- * be handled in the same way).
- *
- * Input: "Louis[n] went[v] to the store[n], and it was fun[a]."
- * Output: [
- *  { word: "Louis", pos: "noun" },
- *  { word: "went", pos: "verb", },
- *  { word: "to", },
- *  { word: "the", },
- *  { word: "store", pos: "noun" }
- *  { word: "," }
- *  ....
- *
- * There are multiple ways to do this, but you may want to use regular expressions.
- * Please go through this lesson: https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/regular-expressions/
- */
+const edit = document.querySelector(".madLibsEdit");
+
 function parseStory(rawStory) {
-  // Your code here.
-  return {}; // This line is currently wrong :)
+  const testVerb = /\[v\][.,;:!?]?(\n|$)/;
+  const testNoun = /\[n\][.,;:!?]?(\r\n|$)/;
+  const testAdj = /\[a\][.,;:!?]?(\n|$)/;
+
+  const comma = /[.,;:!?""]?$/;
+  const newArr = [];
+
+  const name = rawStory.split(" ");
+
+  for (let i = 0; i < name.length; i++) {
+    if (testVerb.test(name[i])) {
+      newArr.push({ word: name[i].replace(testVerb, ""), post: "verb" });
+    } else if (testNoun.test(name[i])) {
+      newArr.push({ word: name[i].replace(testNoun, ""), post: "noun" });
+    } else if (testAdj.test(name[i])) {
+      newArr.push({ word: name[i].replace(testAdj, ""), post: "adjective" });
+    } else if (comma.test(name[i])) {
+      newArr.push({ word: name[i] });
+    } else {
+      newArr.push({ word: name[i] });
+    }
+  }
+  return newArr;
 }
 
-/**
- * All your other JavaScript code goes here, inside the function. Don't worry about
- * the `then` and `async` syntax for now.
- *
- * NOTE: You should not be writing any code in the global namespace EXCEPT
- * declaring functions. All code should either:
- * 1. Be in a function.
- * 2. Be in .then() below.
- *
- * You'll want to use the results of parseStory() to display the story on the page.
- */
+const par = document.createElement("p");
+edit.appendChild(par);
+
 getRawStory()
   .then(parseStory)
   .then((processedStory) => {
-    console.log(processedStory);
+    for (let i = 0; i < processedStory.length; i++) {
+      if (processedStory[i].post == "noun" || processedStory[i].post == "verb" || processedStory[i].post == "adjective") {
+        const newInput = document.createElement("input");
+        par.appendChild(newInput);
+        newInput.setAttribute("id", i);
+        newInput.addEventListener("input", () => {
+          const value = newInput.value;
+          const previewSpan = document.querySelector(`#preview-${i}`);
+          if (previewSpan) {
+            previewSpan.textContent = value;
+          } else {
+            const newSpan = document.createElement("span");
+            newSpan.setAttribute("id", `preview-${i}`);
+            newSpan.textContent = value;
+            par2.appendChild(newSpan);
+          }
+        });
+      } else {
+        const sp = document.createElement("span");
+        par.appendChild(sp);
+        sp.innerHTML = processedStory[i].word;
+        par.appendChild(document.createTextNode(" "));
+      }
+    }
   });
+
+const preview = document.querySelector(".madLibsPreview");
+const par2 = document.createElement("p");
+preview.appendChild(par2);
+
+const newPreview = () => {
+  return fetch("./story.txt").then((response) => response.text());
+};
+
+newPreview().then(parseStory).then((previewStory) => {
+  for (let i = 0; i < previewStory.length; i++) {
+    if (previewStory[i].post == "noun" || previewStory[i].post == "verb" || previewStory[i].post == "adjective") {
+      const newSpan = document.createElement("span");
+      newSpan.setAttribute("id", `preview-${i}`);
+      par2.appendChild(newSpan);
+      par2.appendChild(document.createTextNode(" "));
+    } else {
+      const sp = document.createElement("span");
+      par2.appendChild(sp);
+      sp.innerHTML = previewStory[i].word;
+      par2.appendChild(document.createTextNode(" "));
+    }
+  }
+});
