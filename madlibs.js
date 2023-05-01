@@ -1,4 +1,5 @@
 const edit = document.querySelector(".madLibsEdit");
+const preview = document.querySelector(".madLibsPreview");
 
 function parseStory(rawStory) {
   const testVerb = /\[v\][.,;:!?]?(\n|$)/;
@@ -35,30 +36,33 @@ getRawStory()
     for (let i = 0; i < processedStory.length; i++) {
       if (processedStory[i].post == "noun" || processedStory[i].post == "verb" || processedStory[i].post == "adjective") {
         const newInput = document.createElement("input");
-        par.appendChild(newInput);
         newInput.setAttribute("id", i);
+        newInput.setAttribute("type", "text");
+        par.appendChild(newInput);
         newInput.addEventListener("input", () => {
           const value = newInput.value;
-          const previewSpan = document.querySelector(`#preview-${i}`);
-          if (previewSpan) {
-            previewSpan.textContent = value;
+          const previewElement = document.querySelector(`#preview-${i}`);
+          if (previewElement.tagName === "INPUT") {
+            previewElement.setAttribute("value", value);
           } else {
             const newSpan = document.createElement("span");
             newSpan.setAttribute("id", `preview-${i}`);
+            newSpan.setAttribute("class", previewElement.getAttribute("class"));
             newSpan.textContent = value;
-            par2.appendChild(newSpan);
+            previewElement.parentNode.replaceChild(newSpan, previewElement);
           }
         });
       } else {
         const sp = document.createElement("span");
-        par.appendChild(sp);
+        sp.setAttribute("id", `preview-${i}`);
+        sp.setAttribute("class", `madLibsPreview-${processedStory[i].post}`);
         sp.innerHTML = processedStory[i].word;
+        par.appendChild(sp);
         par.appendChild(document.createTextNode(" "));
       }
     }
   });
 
-const preview = document.querySelector(".madLibsPreview");
 const par2 = document.createElement("p");
 preview.appendChild(par2);
 
@@ -69,15 +73,34 @@ const newPreview = () => {
 newPreview().then(parseStory).then((previewStory) => {
   for (let i = 0; i < previewStory.length; i++) {
     if (previewStory[i].post == "noun" || previewStory[i].post == "verb" || previewStory[i].post == "adjective") {
-      const newSpan = document.createElement("span");
-      newSpan.setAttribute("id", `preview-${i}`);
-      par2.appendChild(newSpan);
-      par2.appendChild(document.createTextNode(" "));
+      const newInput = document.createElement("input");
+      newInput.setAttribute("id", `preview-${i}`);
+      newInput.setAttribute("class", `madLibsPreview-${previewStory[i].post}`);
+      newInput.setAttribute("type", "text");
+      par2.appendChild(newInput);
+      newInput.addEventListener("input", () => {
+        const value = newInput.value;
+        const editElement = document.querySelector(`#${i}`);
+        if (editElement.tagName === "INPUT") {
+          editElement.setAttribute("value", value);
+          newSpan.appendChild(document.createTextNode(" "));
+        } else {
+          const newSpan = document.createElement("span");
+          newSpan.setAttribute("id", i);
+          newSpan.setAttribute("class", editElement.getAttribute("class"));
+          newSpan.textContent = value;
+          editElement.parentNode.replaceChild(newSpan, editElement);
+          newSpan.appendChild(document.createTextNode(" "));
+        }
+      });
     } else {
       const sp = document.createElement("span");
-      par2.appendChild(sp);
+      sp.setAttribute("id", i);
+      sp.setAttribute("class", `madLibsEdit-${previewStory[i].post}`);
       sp.innerHTML = previewStory[i].word;
+      par2.appendChild(sp);
       par2.appendChild(document.createTextNode(" "));
     }
   }
 });
+   
